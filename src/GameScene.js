@@ -27,18 +27,24 @@ var GameScene = cc.Layer.extend({
 	//Timer tally
 	timerTally : 0,
 
+	//Total socre
+	gameScore : 0,
+
+	markupMatrix : null,
+
 	ctor : function(){
 		this._super();
 		this.init();
 	},
 
 	init : function(){
+		this.setTag(111);
 		var winSize = director.getWinSize();
 		//Set block numbers
 		this.numOfBlocks = this.n_MatrixCol * this.n_MatrixRow;
 
 		//Set total game time
-		this.timeTotal = 15;
+		this.timeTotal = 60;
 
 		//Set background
 		var bgSprite = cc.Sprite.create('res/background.jpg');
@@ -71,6 +77,9 @@ var GameScene = cc.Layer.extend({
 		this.blocksSpr = this.initArray(this.n_MatrixRow, this.n_MatrixCol, null);
 		this.blocksPos = this.initArray(this.n_MatrixRow, this.n_MatrixCol, null);
 
+		//Init markup matrix
+		this.markupMatrix = this.initArray(this.n_MatrixRow + 2, this.n_MatrixCol + 2, false);
+
 		gNotification.addObserver(this, this.selectBlock, BLOCK_SELECTED);
 
 		//Init Matrix
@@ -78,6 +87,10 @@ var GameScene = cc.Layer.extend({
 
 		//Updating the progress persistently
 		this.schedule(this.updateProgress, 0.15);
+	},
+
+	clearListeners:function(){
+		gNotification.removeObserver(this, BLOCK_SELECTED);
 	},
 
 	initProgress:function(){
@@ -101,21 +114,66 @@ var GameScene = cc.Layer.extend({
         var baseX = 160.0 + halfSpace - this.n_MatrixCol*halfSpace;
         var baseY = 240.0 + halfSpace - this.n_MatrixRow*halfSpace;
 
+        /*
+        //Init a temp matrix
+        var tempMatrix = [];
+        var tempMatrix_length = this.n_MatrixRow * this.n_MatrixCol;
+        for(var i = 0 ; i < tempMatrix_length / 2; i++){
+        	var randomNumber = 0 | Math.random() * 7;
+        	tempMatrix[i * 2] = new Block(randomNumber);
+        	tempMatrix[i * 2 + 1] = new Block(randomNumber);
+        }
+
+        //function to update the matrix
+        function updateMatrix(index){
+        	if(index == 0){
+        		tempMatrix = tempMatrix.slice(1);
+        	}
+        	else{
+        		tempMatrix = tempMatrix.slice(0, index).concat(tempMatrix.slice(index + 1));
+        	}
+
+        	tempMatrix_length --;
+        }
+
+        */
+        this.patternBg.begin();
+        var bg = cc.Sprite.create("res/PatternBg.png");
 		for(var row = 0 ; row < this.n_MatrixRow ; row ++){
 			for(var col = 0 ; col < this.n_MatrixCol ; col ++){
 				this.blocksPos[row][col] = cc.p(baseX + col * space, baseY + row * space);
-				this.addOneBlock(row, col);
+				bg.setPosition(this.blocksPos[row][col]);
+				bg.visit();
+				/*
+				//Randomly choose the block in tempMatrix
+				var randomNumber = 0 | Math.random() * tempMatrix_length;
+
+				var block = tempMatrix[randomNumber];
+				updateMatrix(randomNumber);
+
+				this.addOneBlock(row, col, block);
+				this.markupMatrix[row + 1][col + 1] = true;
+				*/
 			}
 		}
+		this.patternBg.end();
+		
+		var block1 = new Block(1);
+		var block2 = new Block(1);
+		this.addOneBlock(1, 1, block1);
+		this.addOneBlock(2, 2, block2);
+		this.markupMatrix[2][2] = true;
+		this.markupMatrix[1][1] = true; 
 	},
 
-	addOneBlock:function(row, col){
-		var randomNumber = 0 | Math.random() * 7;
-		this.blocksSpr[row][col] = new Block(randomNumber);
+	addOneBlock:function(row, col, block){
+		//var randomNumber = 0 | Math.random() * 7;
+		//this.blocksSpr[row][col] = new Block(randomNumber);
+		this.blocksSpr[row][col] = block;
 		this.blocksSpr[row][col].setPosition(this.blocksPos[row][col].x, this.blocksPos[row][col].y);
 		this.blocksSpr[row][col].row = row;
 		this.blocksSpr[row][col].col = col;
-		this.blocksSpr[row][col].type = randomNumber;
+		//this.blocksSpr[row][col].type = randomNumber;
 		this.blockBatchNode.addChild(this.blocksSpr[row][col]);
 	}, 
 
@@ -148,19 +206,17 @@ var GameScene = cc.Layer.extend({
 			var previous = this.previousBlock;
 			var current = block;
 
-			if(this.checkBlocks(previous, current)){
+			if(previous != current && previous.destroyed == false && current.destroyed == false && this.checkBlocks(previous, current)){
 				previous.destroyBlocks(this.destroyFrames);
 				current.destroyBlocks(this.destroyFrames);
 
-				this.numOfBlocks = this.numOfBlocks - 2;
+				this.markupMatrix[previous.row + 1][previous.col + 1] = false;
+				this.markupMatrix[current.row + 1][current.col + 1] = false;
+				this.updateScore();
 
 				this.blockSelectedSpr.setPosition(cc.p(-100, -100));
 				this.previousBlock = null;
 
-				if(this.numOfBlocks <= 0){
-					//Game Win
-					this.showGameResult(true);
-				}
 			}
 			else{
 				this.previousBlock = block;
@@ -175,7 +231,13 @@ var GameScene = cc.Layer.extend({
 
 	//Check if this block and the previous one are the same type
 	checkBlocks:function(previous, current){
-		return true;
+		if(previous.type != current.type){
+			return false;
+		}
+		var testLink = new TestLink(previous, current, this.markupMatrix);
+		cc.log('testLink: ' + testLink.canLink());
+		return testLink.canLink();
+		//return true;
 	},
 
 	updateProgress:function(dt){
@@ -194,6 +256,14 @@ var GameScene = cc.Layer.extend({
 		}
 	},
 
+	updateScore:function(){
+		this.gameScore += 1000;
+		this.scoreLabel.setString("Score " + this.gameScore);
+		if(this.gameScore >= 18000){
+			this.showGameResult(true);
+		}
+	},
+
 	showGameResult:function(result){
 		this.onExit();
 		this.unscheduleAllCallbacks();
@@ -203,5 +273,8 @@ var GameScene = cc.Layer.extend({
 		else{
 			cc.log('Game fail.');
 		}
+
+		var resultLayer = new ResultLayer(this.gameScore);
+		director.getRunningScene().addChild(resultLayer);
 	},
 });

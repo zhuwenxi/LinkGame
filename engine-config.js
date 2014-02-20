@@ -9,7 +9,7 @@
 		renderMode : 1, 
 		tag : 'game-canvas',
 		engineDir : 'cocos2d-html5/cocos2d/',
-		appFiles : ['src/CCNotificationCenter.js','game-resource.js', 'src/WelcomeLayer.js', 'src/GameScene.js','src/Block.js'],
+		appFiles : ['src/CCNotificationCenter.js','game-resource.js', 'src/WelcomeLayer.js', 'src/GameScene.js','src/Block.js', 'src/ResultLayer.js', 'src/TestLink.js'],
 	}
 
 	if(!document.createElement('canvas').getContext){

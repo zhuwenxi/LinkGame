@@ -43,6 +43,7 @@ var WelcomeLayer = cc.Layer.extend({
 
 		var toggleButton = cc.MenuItemToggle.create(bgmOn, bgmOff);
             toggleButton.setCallback(function(){
+            	gSharedEngine.playEffect(EFFECT_BUTTON_CLICK);
                 if(gSharedEngine.isMusicPlaying()){
                     gSharedEngine.pauseMusic();
                 }

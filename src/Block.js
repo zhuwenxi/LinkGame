@@ -1,8 +1,12 @@
 var BLOCK_SELECTED = 'BLOCK_SELECTED';
 
 var Block = cc.Sprite.extend({
+	destroyed : false,
+	type : 0,
+
 	ctor:function(type){
 		this._super();
+		this.type = type;
 		this.init(type);
 	},
 
@@ -36,6 +40,8 @@ var Block = cc.Sprite.extend({
 	},
 
 	destroyBlocks:function(frames){
+		this.destroyed = true;
+
 		var destroySprite = cc.Sprite.createWithSpriteFrameName('pattern_destroy_00.png');
 		destroySprite.setPosition(22.5, 22.5);
 		this.addChild(destroySprite);
