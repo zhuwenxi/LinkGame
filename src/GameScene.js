@@ -44,7 +44,7 @@ var GameScene = cc.Layer.extend({
 		this.numOfBlocks = this.n_MatrixCol * this.n_MatrixRow;
 
 		//Set total game time
-		this.timeTotal = 60;
+		this.timeTotal = 50;
 
 		//Set background
 		var bgSprite = cc.Sprite.create('res/background.jpg');
@@ -114,7 +114,6 @@ var GameScene = cc.Layer.extend({
         var baseX = 160.0 + halfSpace - this.n_MatrixCol*halfSpace;
         var baseY = 240.0 + halfSpace - this.n_MatrixRow*halfSpace;
 
-        /*
         //Init a temp matrix
         var tempMatrix = [];
         var tempMatrix_length = this.n_MatrixRow * this.n_MatrixCol;
@@ -136,7 +135,6 @@ var GameScene = cc.Layer.extend({
         	tempMatrix_length --;
         }
 
-        */
         this.patternBg.begin();
         var bg = cc.Sprite.create("res/PatternBg.png");
 		for(var row = 0 ; row < this.n_MatrixRow ; row ++){
@@ -144,7 +142,7 @@ var GameScene = cc.Layer.extend({
 				this.blocksPos[row][col] = cc.p(baseX + col * space, baseY + row * space);
 				bg.setPosition(this.blocksPos[row][col]);
 				bg.visit();
-				/*
+
 				//Randomly choose the block in tempMatrix
 				var randomNumber = 0 | Math.random() * tempMatrix_length;
 
@@ -153,17 +151,30 @@ var GameScene = cc.Layer.extend({
 
 				this.addOneBlock(row, col, block);
 				this.markupMatrix[row + 1][col + 1] = true;
-				*/
 			}
 		}
 		this.patternBg.end();
+
+		// var testBlock1 = new Block(2);
+		// var testBlock2 = new Block(2);
+
+		// var pos1 = {row : 3, col : 0};
+		// var pos2 = {row : 5, col : 3};
+
+		// this.blockBatchNode.removeChild(this.blocksSpr[pos1.row][pos1.col]);
+		// this.blockBatchNode.removeChild(this.blocksSpr[pos2.row][pos2.col]);
+
+		// this.addOneBlock(pos1.row, pos1.col, testBlock1);
+		// this.addOneBlock(pos2.row, pos2.col, testBlock2);
 		
+		/*
 		var block1 = new Block(1);
 		var block2 = new Block(1);
 		this.addOneBlock(1, 1, block1);
 		this.addOneBlock(2, 2, block2);
 		this.markupMatrix[2][2] = true;
-		this.markupMatrix[1][1] = true; 
+		this.markupMatrix[3][3] = true;
+		*/ 
 	},
 
 	addOneBlock:function(row, col, block){
@@ -235,8 +246,11 @@ var GameScene = cc.Layer.extend({
 			return false;
 		}
 		var testLink = new TestLink(previous, current, this.markupMatrix);
-		cc.log('testLink: ' + testLink.canLink());
+		cc.log('testLink');
 		return testLink.canLink();
+
+		// var test = new Test(previous, current, this.markupMatrix);
+		// return test.canLink();
 		//return true;
 	},
 
@@ -260,7 +274,8 @@ var GameScene = cc.Layer.extend({
 		this.gameScore += 1000;
 		this.scoreLabel.setString("Score " + this.gameScore);
 		if(this.gameScore >= 18000){
-			this.showGameResult(true);
+			//this.showGameResult(true);
+			this.runAction(cc.Sequence.create(cc.DelayTime.create(0.7), cc.CallFunc.create(this.showGameResult,this)));
 		}
 	},
 

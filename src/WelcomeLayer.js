@@ -80,6 +80,6 @@ var MyGameScene = cc.Scene.extend({
 
 		gSharedEngine.setMusicVolume(1);
         gSharedEngine.setEffectsVolume(1);
-        //gSharedEngine.playMusic(MUSIC_BACKGROUND,true);
+        gSharedEngine.playMusic(MUSIC_BACKGROUND,true);
 	}
 });
